@@ -171,7 +171,7 @@ const { value, done } = await asyncGen.next()
 layout: two-cols-header
 ---
 
-# Infinite scroll — async generator in action
+# Infinite scroll
 
 ::left::
 
@@ -200,6 +200,45 @@ No page counter. No external state. The generator resumes exactly where it left 
 ⚠️ GitHub API is limited to 60 requests/hour for unauthenticated users
 
 </div>
+
+<style>
+.two-cols-header { column-gap: 2rem; }
+</style>
+
+
+---
+layout: two-cols-header
+---
+
+# Streaming
+
+::left::
+
+An async generator wraps the `ReadableStream` API — yielding decoded chunks one at a time.
+
+```js
+async function* streamChunks(url) {
+  const res = await fetch(url)
+  const reader = res.body.getReader()
+  const decoder = new TextDecoder()
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    yield decoder.decode(value, { stream: true })
+  }
+}
+
+for await (const chunk of streamChunks(url)) {
+  render(chunk)
+}
+```
+
+The consumer calls `next()` at its own pace — pause anytime, resume exactly where it left off.
+
+::right::
+
+<StreamingDemo />
 
 <style>
 .two-cols-header { column-gap: 2rem; }
