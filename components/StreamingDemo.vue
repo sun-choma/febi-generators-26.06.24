@@ -7,7 +7,7 @@
       <button class="btn btn-secondary" :disabled="!started || done" @click="togglePause">
         {{ paused ? 'resume' : 'pause' }}
       </button>
-      <a class="btn btn-ghost" :href="SOURCE_URL" target="_blank">open source ↗</a>
+      <a class="btn btn-ghost" :href="SOURCE_URL" target="_blank">source file ↗</a>
     </div>
 
     <div class="text-wrapper" ref="textWrapper">
@@ -17,13 +17,12 @@
 
     <div class="footer">
       <span class="status" :class="statusClass">{{ statusLabel }}</span>
-      <span class="bytes">{{ progress }}</span>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, nextTick } from 'vue'
+import {ref, computed, nextTick} from 'vue'
 
 const FILE_URL = 'https://raw.githubusercontent.com/sun-choma/febi-generators-26.06.24/refs/heads/master/public/really-big-novel.txt'
 const SOURCE_URL = 'https://github.com/sun-choma/febi-generators-26.06.24/blob/master/public/really-big-novel.txt'
@@ -54,27 +53,18 @@ const statusClass = computed(() => ({
   'status-done': done.value,
 }))
 
-const progress = computed(() => {
-  if (totalBytes.value > 0) {
-    const pct = Math.min(100, (bytesReceived.value / totalBytes.value) * 100).toFixed(1)
-    return `${pct}%`
-  }
-  if (bytesReceived.value < 1024) return `${bytesReceived.value} B`
-  return `${(bytesReceived.value / 1024).toFixed(1)} KB`
-})
-
 async function* streamChunks(url) {
   const res = await fetch(url)
   totalBytes.value = parseInt(res.headers.get('Content-Length') || '0')
   const reader = res.body.getReader()
   const decoder = new TextDecoder()
   while (true) {
-    const { done, value } = await reader.read()
+    const {done, value} = await reader.read()
     if (done) break
-    const text = decoder.decode(value, { stream: true })
-    for (let i = 0; i < text.length; i += 40) {
-      yield text.slice(i, i + 40)
-      await new Promise(r => setTimeout(r, 30))
+    const text = decoder.decode(value, {stream: true})
+    for (let i = 0; i < text.length; i += 20) {
+      yield text.slice(i, i + 20)
+      await new Promise(r => setTimeout(r, 100))
     }
   }
 }
@@ -206,14 +196,9 @@ function togglePause() {
 
 .cursor {
   display: inline-block;
-  animation: blink 1s step-end infinite;
   color: #50fa7b;
 }
 
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
 
 .footer {
   display: flex;
@@ -221,10 +206,23 @@ function togglePause() {
   font-size: 0.7rem;
 }
 
-.status { color: #6272a4; }
-.status-streaming { color: #50fa7b; }
-.status-paused { color: #f1b529; }
-.status-done { color: #bd93f9; }
+.status {
+  color: #6272a4;
+}
 
-.bytes { color: #6272a4; }
+.status-streaming {
+  color: #50fa7b;
+}
+
+.status-paused {
+  color: #f1b529;
+}
+
+.status-done {
+  color: #bd93f9;
+}
+
+.bytes {
+  color: #6272a4;
+}
 </style>
