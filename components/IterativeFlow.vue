@@ -2,18 +2,18 @@
   <div class="flow-wrapper">
     <div class="flow-diagram" ref="diagram">
       <div class="step c-amber">
-        <span class="label">User action</span>
-        <span class="sub">scroll / request</span>
+        <span class="label">ユーザー操作</span>
+        <span class="sub">スクロール / リクエスト</span>
       </div>
       <div class="arrow">→</div>
       <div class="step c-purple">
-        <span class="label">Fetch chunk</span>
-        <span class="sub">server / data</span>
+        <span class="label">チャンク取得</span>
+        <span class="sub">サーバー / データ</span>
       </div>
       <div class="arrow">→</div>
       <div class="step c-teal">
-        <span class="label">Display</span>
-        <span class="sub">render to user</span>
+        <span class="label">表示</span>
+        <span class="sub">ユーザーへレンダリング</span>
       </div>
     </div>
 
@@ -34,7 +34,7 @@
           marker-end="url(#loop-head)"
       />
       <text x="250" y="32" text-anchor="middle" fill="#6272a4" opacity="0.7"
-            font-family="ui-monospace, monospace">repeat
+            font-family="ui-monospace, monospace">繰り返し
       </text>
     </svg>
   </div>

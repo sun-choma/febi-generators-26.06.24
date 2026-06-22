@@ -9,14 +9,14 @@
           :disabled="loading"
       />
       <button class="btn-fetch" :disabled="loading" @click="fetchRepo">
-        fetch repo
+        リポジトリを取得
       </button>
     </div>
 
     <div class="list-wrapper">
       <div class="list">
         <div v-if="commits.length === 0 && !loading && !error" class="empty">
-          — enter a repo and press "fetch repo" —
+          リポジトリを入力して「リポジトリを取得」を押してください
         </div>
         <div v-for="(commit, i) in commits" :key="i" class="commit-row">
           <div class="commit-top">
@@ -29,16 +29,16 @@
         </div>
         <div class="load-more-row">
           <span v-if="error" class="error">⚠️ {{ error }}</span>
-          <span v-else-if="loading" class="loading-indicator">loading...</span>
-          <span v-else-if="exhausted" class="exhausted">— end of history —</span>
+          <span v-else-if="loading" class="loading-indicator">読み込み中...</span>
+          <span v-else-if="exhausted" class="exhausted">— 履歴の終わりです —</span>
           <a v-else-if="commits.length > 0" href="#" class="load-more-link" @click.prevent="loadMore">
-            load more
+            もっと読む
           </a>
         </div>
       </div>
     </div>
 
-    <div class="footer">{{ commits.length }} commits loaded</div>
+    <div class="footer">{{ commits.length }} 件のコミットを読み込み済み</div>
   </div>
 </template>
 

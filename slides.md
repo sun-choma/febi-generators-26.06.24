@@ -6,7 +6,7 @@ highlighter: shiki
 
 # 🔁 Iterators & Generators
 
-A function you can pause and resume
+一時停止して再開できる関数
 
 ---
 src: ./pages/basics.md
@@ -20,16 +20,16 @@ src: ./pages/real-cases.md
 layout: center
 ---
 
-# Generators have been waiting for you since ES2015
+# ジェネレーターはES2015からずっと待っていました
 
 <div class="resources">
-  <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator" target="_blank" class="resource">
+  <a href="https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Generator" target="_blank" class="resource">
     <lucide-link class="inline" /> MDN — Generator
   </a>
-  <a href="https://javascript.info/generators" target="_blank" class="resource">
+  <a href="https://ja.javascript.info/generators" target="_blank" class="resource">
     <lucide-link class="inline" /> javascript.info — Generators
   </a>
-  <a href="https://javascript.info/async-iterators-generators" target="_blank" class="resource">
+  <a href="https://ja.javascript.info/async-iterators-generators" target="_blank" class="resource">
     <lucide-link class="inline" /> javascript.info — Async generators
   </a>
 </div>

@@ -2,9 +2,9 @@
 layout: default
 ---
 
-# Some processes don't end all at once
+# 一部のプロセスは一度に終わらない
 
-Data arrives in pieces. Users request more on demand.
+データは少しずつ届く。ユーザーは必要なときに追加のデータをリクエストする。
 
 <div class="my-8">
   <IterativeFlow/>
@@ -12,14 +12,14 @@ Data arrives in pieces. Users request more on demand.
 
 <v-clicks>
 
-- **Streaming** — server pushes chunks as they're ready
-- **Infinite scroll** — data fetched on demand, piece by piece
+- **ストリーミング**。サーバーが準備でき次第、チャンクをプッシュする
+- **無限スクロール**。データをオンデマンドで少しずつ取得する
 
 </v-clicks>
 
 <div v-click class="mt-12">
 
-> If you've struggled to implement these cleanly — generators might be the missing piece.
+> これらをクリーンに実装するのに苦労したことがあるなら、ジェネレーターが解決策かもしれません。
 
 </div>
 
@@ -29,7 +29,7 @@ layout: two-cols-header
 gap: 2
 ---
 
-# The straightforward implementation
+# シンプルな実装
 
 ::left::
 
@@ -50,14 +50,14 @@ async function streamText(url) {
 
 <v-click>
 
-**Problems**
+**問題点**
 
-* Fetching and consuming are **tightly coupled** — change one, touch both
+* フェッチと消費が**密結合**。片方を変えると、もう片方も変える必要がある
 
 </v-click>
 <v-click>
 
-* Impossible to **test in isolation** — you can't unit test streaming logic without triggering a re-render
+* **単体テストが不可能**。レンダリングをトリガーせずにストリーミングロジックをテストできない
 
 </v-click>
 
@@ -69,7 +69,7 @@ async function streamText(url) {
 layout: two-cols-header
 ---
 
-# A step in the right direction
+# 改善された実装
 
 ::left::
 
@@ -90,23 +90,23 @@ async function streamText(url, onChunk) {
 
 <v-click>
 
-✅ Consumption is **decoupled** — caller decides what to do with each chunk
+✅ 消費ロジックが**分離された**。呼び出し側が各チャンクの処理を決定できる
 
 </v-click>
 <v-click>
 
-❌ **Push-based** only — callbacks and `.then()` were replaced by `await` for a reason
+❌ **プッシュ型**のまま。コールバックと`.then()`が`await`に置き換えられた理由がある
 
 ```js
-// push-based — hard to follow
+// プッシュ型。流れを追いにくい
 fetch(url).then(res => {
-    // otherFunction() will be called before this callback
+    // otherFunction() はこのコールバックより先に呼ばれる
 })
 otherFunction()
 
-// sequential — clear and intuitive
+// 順次実行。明快で直感的
 const res = await fetch(url)
-// Some additional lines of code
+// 追加のコード
 otherFunction()
 ```
 
@@ -119,27 +119,27 @@ otherFunction()
 ---
 ---
 
-# What if consuming chunks looked like this?
+# チャンクの消費がこう書けたら？
 
 ```js
 for await (const chunk of streamChunks(url)) {
-    // it doesnt matter to use how this chunk was acquired, 
-    // we get the results as soon as its ready
+    // チャンクがどう取得されたかは関係ない
+    // 準備でき次第、結果を受け取れる
     render(chunk)
 }
 ```
 
 <v-clicks>
 
-- **Sequential** — reads top to bottom, no callbacks
-- **Pull-based** — consumer drives the pace, not the producer
-- **Decoupled** — `streamChunks` knows nothing about `render`
-- **Testable** — iterate the generator directly in any test
+- **順次実行**。上から下へ読め、コールバック不要
+- **プル型**。プロデューサーではなく、コンシューマーがペースをコントロールする
+- **疎結合**。`streamChunks`は`render`について何も知らない
+- **テスト可能**。どんなテストでもジェネレーターを直接イテレートできる
 
 </v-clicks>
 <v-click>
 
-This is exactly what generators enable. Let's see how.
+これがまさにジェネレーターが実現することです。実装を見ていきましょう。
 
 </v-click>
 
@@ -148,14 +148,14 @@ This is exactly what generators enable. Let's see how.
 layout: two-cols-header
 ---
 
-# Iterators & Iterables
+# イテレーターとイテラブル
 
 ::left::
 
-An **iterator** is an object that produces values one at a time.
+**イテレーター**とは、値を一つずつ生成するオブジェクトです。
 
-- has a `next()` method
-- `next()` returns `{ value, done }`
+- `next()`メソッドを持つ
+- `next()`は`{ value, done }`を返す
 
 <div class="my-8">
 <IteratorDemo />
@@ -164,20 +164,28 @@ An **iterator** is an object that produces values one at a time.
 
 ::right::
 
-An **iterable** is an object that exposes an iterator.
+<v-click>
 
-- has a `[Symbol.iterator]()` method
-- that method returns an **iterator**
+**イテラブル**とは、イテレーターを公開するオブジェクトです。
 
-Anything that works with `for...of` or spread is an iterable
+- `[Symbol.iterator]()`メソッドを持つ
+- そのメソッドが**イテレーター**を返す
+
+`for...of`やスプレッド構文で使えるものは全てイテラブル
+
+</v-click>
+
+<v-clicks>
 
 * `Array`
 * `String`
 * `Map`
 * `Set`
 
-<!-- 
-Live demo: Array[Symbol.iterator] is non-enumerable but accessible.
+</v-clicks>
+
+<!--
+Live demo: Array[Symbol.iterator] は列挙不可能だがアクセス可能。
 
 const arr = [1, 2, 3]
 const iter = arr[Symbol.iterator]()
@@ -188,13 +196,13 @@ iter.next()
 layout: two-cols-header
 ---
 
-# Building an iterator manually
+# イテラブルを手動で実装する
 
 ::left::
 
-Let's implement `range(start, end)` — a sequence of numbers from start to end, generated on demand.
+`range(start, end)`を実装してみましょう。startからendまでの数値をオンデマンドで生成するシーケンスです。
 
-> Same idea as Python's `range()`.
+> Pythonの`range()`と同じ考え方です。
 
 ```js
 function range(start, end) {
@@ -218,9 +226,9 @@ function range(start, end) {
 <v-click>
 
 ```js
-// usage
+// 使い方
 for (const n of range(1, 5)) {
-    console.log(n) // 1, 2, 3, 4, 5
+    console.log(n) // 1, 2, 3, 4
 }
 ```
 
@@ -228,24 +236,28 @@ for (const n of range(1, 5)) {
 
 <v-click>
 
-* Using array
+* 配列を使う場合
 
 ```js
-const arr = Array.from({length: 1000000})
-// ☝️ 1M slots allocated in memory
+const arr = Array.from({length: 1_000_000})
+// ☝️ 100万スロットがメモリに確保される
 ```
 
 </v-click>
 
+<!--
+ES2021
+-->
+
 
 <v-click>
 
-* Using iterator
+* イテレーターを使う場合
 
 ```js
-const iter = range(1, 1000000)
-// ☝️ no numbers exist yet
-// each value generated on demand
+const iter = range(1, 1_000_000)
+// ☝️ まだ数値は存在しない
+// 値はオンデマンドで生成される
 ```
 
 </v-click>
@@ -258,15 +270,15 @@ const iter = range(1, 1000000)
 layout: two-cols-header
 ---
 
-# Iterable iterator & Generator
+# イテラブルイテレーターとジェネレーター
 
 ::left::
 
-An **iterable iterator** is both at once
+**イテラブルイテレーター**は両方を兼ねるオブジェクトです
 
 <v-click>
 
-> `[Symbol.iterator]()` returns `this`
+> `[Symbol.iterator]()`が`this`を返す
 
 ```js
 function range(start, end) {
@@ -290,7 +302,7 @@ function range(start, end) {
 
 <v-click>
 
-A **generator** is an iterable iterator — built automatically by `function*`
+**ジェネレーター**はイテラブルイテレーターを自動で生成します。`function*`で定義します。
 
 ```js
 function* range(start, end) {
@@ -303,19 +315,18 @@ function* range(start, end) {
 
 <v-click>
 
-`yield` pauses execution and returns the current value — the generator resumes from the same point on the next `next()` call.
+`yield`は実行を一時停止し、現在の値を返します。次の`next()`呼び出しで同じ箇所から再開します。
 
 </v-click>
 
 <v-clicks>
 
-- only valid inside `function*`
-- replaces the manual `{ value, done }` shape
-- `next()` and `{ value, done }` are still there — just hidden under the hood
+- `function*`の内部でのみ有効
+- 手動の`{ value, done }`の記述を置き換える
+- `next()`と`{ value, done }`は引き続き存在する。ただし内部に隠されている
 
 </v-clicks>
 
 <style>
 .two-cols-header { column-gap: 2rem; }
 </style>
-

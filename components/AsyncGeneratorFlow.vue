@@ -3,17 +3,17 @@
     <div class="flow-diagram">
       <div class="step c-purple">
         <span class="label">next()</span>
-        <span class="sub">called</span>
+        <span class="sub">呼び出し</span>
       </div>
       <div class="arrow">→</div>
       <div class="step c-amber">
         <span class="label">await</span>
-        <span class="sub">network / timer</span>
+        <span class="sub">ネットワーク / タイマー</span>
       </div>
       <div class="arrow">→</div>
       <div class="step c-teal">
         <span class="label">yield</span>
-        <span class="sub">value ready</span>
+        <span class="sub">値の準備完了</span>
       </div>
     </div>
 
@@ -34,7 +34,7 @@
           marker-end="url(#loop-head)"
       />
       <text x="290" y="32" text-anchor="middle" fill="#6272a4" opacity="0.7"
-            font-family="ui-monospace, monospace">repeat</text>
+            font-family="ui-monospace, monospace">繰り返し</text>
     </svg>
   </div>
 </template>

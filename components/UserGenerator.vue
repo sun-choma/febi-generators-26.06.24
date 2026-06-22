@@ -17,7 +17,6 @@
       </div>
     </div>
 
-    <div class="footer">{{ users.length }} users generated</div>
   </div>
 </template>
 

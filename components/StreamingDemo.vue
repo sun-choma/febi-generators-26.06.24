@@ -1,22 +1,19 @@
 <template>
   <div class="wrapper">
     <div class="controls">
-      <button class="btn btn-primary" :disabled="streaming && !paused" @click="start">
-        {{ started ? 'restart' : 'start streaming' }}
+      <button class="btn btn-primary" :disabled="state === 'done'" @click="handleStream">
+        {{ state === 'idle' ? 'ストリーミング開始' : state === 'paused' ? '再開' : '一時停止' }}
       </button>
-      <button class="btn btn-secondary" :disabled="!started || done" @click="togglePause">
-        {{ paused ? 'resume' : 'pause' }}
-      </button>
-      <a class="btn btn-ghost" :href="SOURCE_URL" target="_blank">source file ↗</a>
+      <a class="btn btn-ghost" :href="SOURCE_URL" target="_blank">ソースファイル ↗</a>
     </div>
 
     <div class="text-wrapper" ref="textWrapper">
       <span class="text-content">{{ text }}</span>
-      <span v-if="streaming && !paused" class="cursor">▋</span>
+      <span v-if="state === 'streaming'" class="cursor">▋</span>
     </div>
 
     <div class="footer">
-      <span class="status" :class="statusClass">{{ statusLabel }}</span>
+      <span class="status" :class="`status-${state}`">{{ statusLabel }}</span>
     </div>
   </div>
 </template>
@@ -27,35 +24,22 @@ import {ref, computed, nextTick} from 'vue'
 const FILE_URL = 'https://raw.githubusercontent.com/sun-choma/febi-generators-26.06.24/refs/heads/master/public/really-big-novel.txt'
 const SOURCE_URL = 'https://github.com/sun-choma/febi-generators-26.06.24/blob/master/public/really-big-novel.txt'
 
+// 'idle' | 'streaming' | 'paused' | 'done'
+const state = ref('idle')
 const text = ref('')
-const streaming = ref(false)
-const paused = ref(false)
-const started = ref(false)
-const done = ref(false)
-const bytesReceived = ref(0)
-const totalBytes = ref(0)
 const textWrapper = ref(null)
 
 let gen = null
-let stopLoop = false
 
-const statusLabel = computed(() => {
-  if (done.value) return 'done'
-  if (!started.value) return 'idle'
-  if (paused.value) return 'paused'
-  if (streaming.value) return 'streaming...'
-  return 'idle'
-})
-
-const statusClass = computed(() => ({
-  'status-streaming': streaming.value && !paused.value,
-  'status-paused': paused.value,
-  'status-done': done.value,
-}))
+const statusLabel = computed(() => ({
+  idle: 'アイドル',
+  streaming: 'ストリーミング中...',
+  paused: '一時停止中',
+  done: '完了',
+}[state.value]))
 
 async function* streamChunks(url) {
   const res = await fetch(url)
-  totalBytes.value = parseInt(res.headers.get('Content-Length') || '0')
   const reader = res.body.getReader()
   const decoder = new TextDecoder()
   while (true) {
@@ -70,23 +54,15 @@ async function* streamChunks(url) {
 }
 
 async function runLoop() {
-  stopLoop = false
   for await (const chunk of gen) {
-    if (stopLoop) break
-    while (paused.value) {
-      if (stopLoop) break
+    while (state.value === 'paused') {
       await new Promise(r => setTimeout(r, 50))
     }
-    if (stopLoop) break
     text.value += chunk
-    bytesReceived.value += new Blob([chunk]).size
     await nextTick()
     scrollToBottom()
   }
-  if (!stopLoop) {
-    streaming.value = false
-    done.value = true
-  }
+  state.value = 'done'
 }
 
 function scrollToBottom() {
@@ -95,23 +71,16 @@ function scrollToBottom() {
   }
 }
 
-async function start() {
-  stopLoop = true
-  await nextTick()
-  text.value = ''
-  bytesReceived.value = 0
-  totalBytes.value = 0
-  paused.value = false
-  done.value = false
-  streaming.value = true
-  started.value = true
-  gen = streamChunks(FILE_URL)
-  runLoop()
-}
-
-function togglePause() {
-  paused.value = !paused.value
-  if (!paused.value) {
+function handleStream() {
+  if (state.value === 'idle') {
+    text.value = ''
+    state.value = 'streaming'
+    gen = streamChunks(FILE_URL)
+    runLoop()
+  } else if (state.value === 'streaming') {
+    state.value = 'paused'
+  } else if (state.value === 'paused') {
+    state.value = 'streaming'
     nextTick(scrollToBottom)
   }
 }

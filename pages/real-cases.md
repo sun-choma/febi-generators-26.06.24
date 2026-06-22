@@ -2,17 +2,15 @@
 layout: two-cols-header
 ---
 
-# Generators in practice — PRNG
+# ジェネレーターの実践例
 
 ::left::
 
-<a href="https://en.wikipedia.org/wiki/Pseudorandom_number_generator" target="_blank">Pseudorandom Number Generator (
-PRNG) ↗</a>
+<a href="https://ja.wikipedia.org/wiki/%E6%93%AC%E4%BC%BC%E4%B9%B1%E6%95%B0" target="_blank">擬似乱数生成器（PRNG） ↗</a>
 
-A deterministic algorithm that produces a sequence of numbers that appear random — but given the same seed, always
-produces the same sequence.
+同じシードを与えると常に同じ数列を生成する、決定論的なアルゴリズムです。
 
-**Used in:** mocking data, procedural world generation, reproducible test fixtures.
+**主な用途：** モックデータの生成、プロシージャルワールド生成、再現性のあるテストデータ。
 
 ```js
 function* seededUsers(seed) {
@@ -36,42 +34,39 @@ function* seededUsers(seed) {
 </style>
 
 <!--
-LCG — Linear Congruential Generator
+LCG — Linear Congruential Generator（線形合同法）
 -->
 
 ---
 layout: default
 ---
 
-# Why haven't you heard of this?
+# なぜ聞いたことがないのか？
 
 <v-click>
 
-The core principle of generators is simple: **return the next item on demand**. Async works too — just wait for the next
-one when it's ready.
+ジェネレーターの核心はシンプルです。**オンデマンドで次のアイテムを返す**。非同期も対応しています。準備ができたら次のアイテムを待つだけです。
 
-This step-based, on-demand mechanism maps naturally to backend problems — cursor navigation, partial file reading,
-database streaming. Backend developers deal with these quite frequently, which is why generators feel familiar there.
+このステップ駆動・オンデマンドの仕組みは、カーソルナビゲーション、部分的なファイル読み込み、データベースストリーミングなど、バックエンドの問題に自然にマッチします。バックエンド開発者が日常的に扱うため、ジェネレーターはそちらでは馴染みのある存在です。
 
 </v-click>
 
 <v-click>
 
-On the frontend, there are a few common use cases:
+フロントエンドでも、いくつかの場面で活躍します。
 
 </v-click>
 
 <v-clicks>
 
-- **Infinite scroll** — load the next page when the user is ready
-- **Real-time streaming** — consume chunks as they arrive from the server
+- **無限スクロール**。ユーザーの操作に合わせて次のページを読み込む
+- **リアルタイムストリーミング**。サーバーからチャンクが届き次第、消費する
 
 </v-clicks>
 
-
 <v-click>
 
-Both are pull-based, step-driven flows. Generators are a natural fit — and that's exactly what we'll build next.
+どちらもプル型・ステップ駆動のフローです。ジェネレーターが自然にフィットします。次はこれを実際に構築していきましょう。
 
 </v-click>
 
@@ -80,13 +75,11 @@ Both are pull-based, step-driven flows. Generators are a natural fit — and tha
 layout: default
 ---
 
-# Async generators
+# 非同期ジェネレーター
 
-When the next value isn't immediately available — it needs to be fetched, waited for, or streamed — a regular generator
-falls short.
+次の値がすぐに取得できない場合、つまりフェッチや待機、ストリーミングが必要な場合、通常のジェネレーターでは対応できません。
 
-<strong>Async generators</strong> let you `await` between yields, making asynchronous sequences feel just as clean as
-synchronous ones.
+**非同期ジェネレーター**を使うと`yield`の間で`await`が使えるため、非同期なシーケンスも同期処理と同じくらいクリーンに書けます。
 
 <div class="mt-8">
   <AsyncGeneratorFlow />
@@ -96,13 +89,13 @@ synchronous ones.
 layout: two-cols-header
 ---
 
-# From sync to async
+# 同期から非同期へ
 
 ::left::
 
 ```js
 function* range(start, end) {
-    for (let i = start; i <= end; i++) {
+    for (let i = start; i < end; i++) {
         yield i
     }
 }
@@ -116,7 +109,7 @@ for (const value of range(1, 5)) {
 
 ```js {*|1|3|8|*}
 async function* asyncRange(start, end) {
-    for (let i = start; i <= end; i++) {
+    for (let i = start; i < end; i++) {
         await new Promise(r => setTimeout(r, 1000))
         yield i
     }
@@ -129,15 +122,15 @@ for await (const value of asyncRange(1, 5)) {
 
 <v-click>
 
-main differences
+主な変更点
 
 </v-click>
 
 <v-clicks>
 
-- add `async` to `function*`
-- `await` inside the body
-- `for await...of` to iterate
+- `function*`に`async`を追加する
+- 関数本体で`await`が使える
+- イテレートには`for await...of`を使う
 
 </v-clicks>
 
@@ -148,9 +141,9 @@ main differences
 ---
 ---
 
-# Async iterables gochas
+# 非同期イテラブルの注意点
 
-Spread and destructuring expect `Symbol.iterator` — async iterables use `Symbol.asyncIterator` instead.
+スプレッド構文やデストラクチャリングは`Symbol.iterator`を期待しますが、非同期イテラブルは`Symbol.asyncIterator`を使います。
 
 ```js
 async function* asyncRange(start, end) {
@@ -159,15 +152,15 @@ async function* asyncRange(start, end) {
     }
 }
 
-// ❌ won't work
+// ❌ 動作しない
 const values = [...asyncRange(1, 5)] // TypeError: range(...) is not iterable
 
-// ✅ only way to consume
+// ✅ 標準的な消費方法
 for await (const value of asyncRange(1, 5)) {
     console.log(value)
 }
 
-// ✅ also valid
+// ✅ こちらも有効
 const asyncGen = asyncRange(1, 5)
 const {value, done} = await asyncGen.next()
 ```
@@ -176,11 +169,11 @@ const {value, done} = await asyncGen.next()
 layout: two-cols-header
 ---
 
-# Infinite scroll
+# 無限スクロール
 
 ::left::
 
-An async generator owns the cursor internally — the consumer just calls `next()`.
+非同期ジェネレーターがカーソルを内部で管理します。コンシューマーは`next()`を呼ぶだけです。
 
 ```js
 async function* fetchCommits(repo) {
@@ -194,7 +187,7 @@ async function* fetchCommits(repo) {
 }
 ```
 
-No page counter. No external state. The generator resumes exactly where it left off on each `load more` click.
+ページカウンターなし。外部ステートなし。「もっと読む」クリックのたびに、ジェネレーターは中断した箇所から正確に再開します。
 
 ::right::
 
@@ -202,7 +195,7 @@ No page counter. No external state. The generator resumes exactly where it left 
 
 <div class="mt-2 text-xs opacity-40">
 
-⚠️ GitHub API is limited to 60 requests/hour for unauthenticated users
+⚠️ GitHub APIは未認証ユーザーに対して1時間あたり60リクエストの制限があります
 
 </div>
 
@@ -215,11 +208,11 @@ No page counter. No external state. The generator resumes exactly where it left 
 layout: two-cols-header
 ---
 
-# Streaming
+# ストリーミング
 
 ::left::
 
-An async generator wraps the `ReadableStream` API — yielding decoded chunks one at a time.
+非同期ジェネレーターが`ReadableStream` APIをラップし、チャンクを一つずつyieldします。
 
 ```js
 async function* streamChunks(url) {
@@ -239,13 +232,13 @@ for await (const chunk of streamChunks(url)) {
 }
 ```
 
-The consumer calls `next()` at its own pace — pause anytime, resume exactly where it left off.
+コンシューマーは自分のペースで`next()`を呼びます。いつでも一時停止でき、再開できます。
 
 ::right::
 
 <StreamingDemo />
 
-> ⚠️ streaming speed is artificially slowed down for demonstration purposes
+> ⚠️ ストリーミング速度はデモのため意図的に遅くしています
 
 <style>
 .two-cols-header { column-gap: 2rem; }
