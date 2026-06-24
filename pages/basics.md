@@ -185,11 +185,31 @@ layout: two-cols-header
 </v-clicks>
 
 <!--
-Live demo: Array[Symbol.iterator] は列挙不可能だがアクセス可能。
+Array[Symbol.iterator] は列挙不可能だがアクセス可能。
 
+```js
 const arr = [1, 2, 3]
 const iter = arr[Symbol.iterator]()
 iter.next()
+```
+
+```js
+function greet(name) {
+  return `Hello, ${name}!`
+}
+
+greet[Symbol.iterator] = function() {
+  const letters = ['H', 'e', 'l', 'l', 'o']
+  let index = 0
+  return {
+    next() {
+      return index < letters.length
+        ? { value: letters[index++], done: false }
+        : { value: undefined, done: true }
+    }
+  }
+}
+```
 -->
 
 ---
@@ -246,7 +266,7 @@ const arr = Array.from({length: 1_000_000})
 </v-click>
 
 <!--
-ES2021
+`_`はES2021から使う可能（見やすさのため）
 -->
 
 
@@ -288,7 +308,7 @@ function range(start, end) {
     [Symbol.iterator]() { return this },
       
     next() {
-      return current <= end
+      return current < end
         ? { value: current++, done: false }
         : { value: undefined, done: true }
     }
@@ -306,7 +326,7 @@ function range(start, end) {
 
 ```js
 function* range(start, end) {
-  for (let i = start; i <= end; i++) {
+  for (let i = start; i < end; i++) {
     yield i
   }
 }
@@ -330,3 +350,12 @@ function* range(start, end) {
 <style>
 .two-cols-header { column-gap: 2rem; }
 </style>
+
+
+<!--
+```js
+const gen = range(1, 5);
+const first = gen.next();
+const second = gen.next();
+```
+-->

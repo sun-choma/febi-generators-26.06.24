@@ -147,7 +147,7 @@ for await (const value of asyncRange(1, 5)) {
 
 ```js
 async function* asyncRange(start, end) {
-    for (let i = start; i <= end; i++) {
+    for (let i = start; i < end; i++) {
         yield i
     }
 }
